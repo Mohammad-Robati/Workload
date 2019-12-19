@@ -1,16 +1,18 @@
 import math
 import random
 import time
+import copy
 from workStationJob import WorkStationJob
 from answer import Answer
 from simulatedAnnealing import SimulatedAnnealing
 
-def workLoadAlgorithm():
-    time1 = 0
+
+def workLoadAlgorithm(workStation1JobsPrimary, workStation2JobsPrimary, workStation3JobsPrimary, answers):
+    time1 = -0.05
     timeStep = -0.01
-    workStation1Jobs = workStation1JobsPrimary.copy()
-    workStation2Jobs = workStation2JobsPrimary.copy()
-    workStation3Jobs = workStation3JobsPrimary.copy()
+    workStation1Jobs = copy.deepcopy(workStation1JobsPrimary)
+    workStation2Jobs = copy.deepcopy(workStation2JobsPrimary)
+    workStation3Jobs = copy.deepcopy(workStation3JobsPrimary)
     workStation1 = []
     workStation2 = []
     workStation3 = []
@@ -35,9 +37,11 @@ def workLoadAlgorithm():
                     thereIsNoAvailable = False
                     newJobOptions.append(SimulatedAnnealing(job))
                     sumOfTimeNeeded += job.timeNeeded
+
             if thereIsNoAvailable:
                 workStation1CurrentEndTime += 1
                 continue
+
             for jobOption in newJobOptions:
                 jobOption.probabilityIntervalStart = probabilityIntervalStart
                 jobOption.probabilityIntervalEnd = probabilityIntervalStart + jobOption.calculateProbability(
@@ -47,9 +51,8 @@ def workLoadAlgorithm():
             for jobOption in newJobOptions:
                 if jobOption.probabilityIntervalStart <= randomNumber < jobOption.probabilityIntervalEnd:
                     newJob = jobOption.newJobOption
-                del jobOption
+                    break
 
-            workStation1Jobs.remove(newJob)
             for job in workStation2Jobs:
                 if job.jobNumber == newJob.jobNumber:
                     if job.limit1Start == 0 and job.limit1End == 0:
@@ -60,6 +63,8 @@ def workLoadAlgorithm():
                         job.limit2End = workStation1CurrentEndTime + newJob.timeNeeded
                     else:
                         pass
+                    break
+
             for job in workStation3Jobs:
                 if job.jobNumber == newJob.jobNumber:
                     if job.limit1Start == 0 and job.limit1End == 0:
@@ -70,9 +75,11 @@ def workLoadAlgorithm():
                         job.limit2End = workStation1CurrentEndTime + newJob.timeNeeded
                     else:
                         pass
+                    break
             newJob.startTime = workStation1CurrentEndTime
             workStation1.append(newJob)
             workStation1CurrentEndTime += newJob.timeNeeded
+            workStation1Jobs.remove(newJob)
             if len(workStation1Jobs) == 0:
                 workStation1TotalEndTime = workStation1CurrentEndTime
                 workStation1CurrentEndTime = math.inf
@@ -84,9 +91,11 @@ def workLoadAlgorithm():
                     thereIsNoAvailable = False
                     newJobOptions.append(SimulatedAnnealing(job))
                     sumOfTimeNeeded += job.timeNeeded
+
             if thereIsNoAvailable:
                 workStation2CurrentEndTime += 1
                 continue
+
             for jobOption in newJobOptions:
                 jobOption.probabilityIntervalStart = probabilityIntervalStart
                 jobOption.probabilityIntervalEnd = probabilityIntervalStart + jobOption.calculateProbability(
@@ -96,7 +105,7 @@ def workLoadAlgorithm():
             for jobOption in newJobOptions:
                 if jobOption.probabilityIntervalStart <= randomNumber < jobOption.probabilityIntervalEnd:
                     newJob = jobOption.newJobOption
-                del jobOption
+                    break
 
             workStation2Jobs.remove(newJob)
             for job in workStation1Jobs:
@@ -109,6 +118,8 @@ def workLoadAlgorithm():
                         job.limit2End = workStation2CurrentEndTime + newJob.timeNeeded
                     else:
                         pass
+                    break
+
             for job in workStation3Jobs:
                 if job.jobNumber == newJob.jobNumber:
                     if job.limit1Start == 0 and job.limit1End == 0:
@@ -119,6 +130,7 @@ def workLoadAlgorithm():
                         job.limit2End = workStation2CurrentEndTime + newJob.timeNeeded
                     else:
                         pass
+                    break
             newJob.startTime = workStation2CurrentEndTime
             workStation2.append(newJob)
             workStation2CurrentEndTime += newJob.timeNeeded
@@ -133,9 +145,11 @@ def workLoadAlgorithm():
                     thereIsNoAvailable = False
                     newJobOptions.append(SimulatedAnnealing(job))
                     sumOfTimeNeeded += job.timeNeeded
+
             if thereIsNoAvailable:
                 workStation3CurrentEndTime += 1
                 continue
+
             for jobOption in newJobOptions:
                 jobOption.probabilityIntervalStart = probabilityIntervalStart
                 jobOption.probabilityIntervalEnd = probabilityIntervalStart + jobOption.calculateProbability(
@@ -145,7 +159,7 @@ def workLoadAlgorithm():
             for jobOption in newJobOptions:
                 if jobOption.probabilityIntervalStart <= randomNumber < jobOption.probabilityIntervalEnd:
                     newJob = jobOption.newJobOption
-                del jobOption
+                    break
 
             workStation3Jobs.remove(newJob)
             for job in workStation1Jobs:
@@ -158,6 +172,7 @@ def workLoadAlgorithm():
                         job.limit2End = workStation3CurrentEndTime + newJob.timeNeeded
                     else:
                         pass
+                    break
             for job in workStation2Jobs:
                 if job.jobNumber == newJob.jobNumber:
                     if job.limit1Start == 0 and job.limit1End == 0:
@@ -168,6 +183,7 @@ def workLoadAlgorithm():
                         job.limit2End = workStation3CurrentEndTime + newJob.timeNeeded
                     else:
                         pass
+                    break
             newJob.startTime = workStation3CurrentEndTime
             workStation3.append(newJob)
             workStation3CurrentEndTime += newJob.timeNeeded
@@ -175,30 +191,28 @@ def workLoadAlgorithm():
                 workStation3TotalEndTime = workStation3CurrentEndTime
                 workStation3CurrentEndTime = math.inf
     newAnswer = Answer(max(workStation1TotalEndTime, workStation2TotalEndTime, workStation3TotalEndTime),
-                       workStation1, workStation2, workStation3, jobNumbers)
+                       workStation1, workStation2, workStation3)
     answers.append(newAnswer)
 
 
-jobNumbers = int(input())
-workStation1JobsPrimary = []
-workStation2JobsPrimary = []
-workStation3JobsPrimary = []
-maximumArrivalTime = 0
-answers = []
-for i in range(jobNumbers):
-    jobString = input().split()
-    if int(jobString[0]) > maximumArrivalTime:
-        maximumArrivalTime = int(jobString[0])
-    workStation1JobsPrimary.append(WorkStationJob(i, int(jobString[0]), int(jobString[1])))
-    workStation2JobsPrimary.append(WorkStationJob(i, int(jobString[0]), int(jobString[2])))
-    workStation3JobsPrimary.append(WorkStationJob(i, int(jobString[0]), int(jobString[3])))
-beginTime = time.process_time()
-while time.process_time() - beginTime < 1.0:
-    workLoadAlgorithm()
-minAnswer = math.inf
-optimalAnswer = None
-for answer in answers:
-    if answer.maxTimeEnded < minAnswer:
-        optimalAnswer = answer
-        minAnswer = answer.maxTimeEnded
-optimalAnswer.printResult()
+if __name__ == "__main__":
+    jobNumbers = int(input())
+    workStation1JobsPrimary = []
+    workStation2JobsPrimary = []
+    workStation3JobsPrimary = []
+    answers = []
+    for i in range(jobNumbers):
+        jobString = input().split()
+        workStation1JobsPrimary.append(WorkStationJob(i, int(jobString[0]), int(jobString[1])))
+        workStation2JobsPrimary.append(WorkStationJob(i, int(jobString[0]), int(jobString[2])))
+        workStation3JobsPrimary.append(WorkStationJob(i, int(jobString[0]), int(jobString[3])))
+    beginTime = time.process_time()
+    while time.process_time() - beginTime < 10.0:
+        workLoadAlgorithm(workStation1JobsPrimary, workStation2JobsPrimary, workStation3JobsPrimary, answers)
+    minAnswer = math.inf
+    optimalAnswer = None
+    for answer in answers:
+        if answer.maxTimeEnded <= minAnswer:
+            optimalAnswer = answer
+            minAnswer = answer.maxTimeEnded
+    optimalAnswer.printResult(jobNumbers)

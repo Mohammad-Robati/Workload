@@ -1,14 +1,13 @@
 class Answer:
-    def __init__(self, maxTimeEnded, workStation1, workStation2, workStation3, jobNumbers):
+    def __init__(self, maxTimeEnded, workStation1, workStation2, workStation3):
         self.maxTimeEnded = maxTimeEnded
         self.workStation1 = workStation1
         self.workStation2 = workStation2
         self.workStation3 = workStation3
-        self.jobNumbers = jobNumbers
 
-    def printResult(self):
+    def printResult(self, jobNumbers):
         print(self.maxTimeEnded)
-        for j in range(self.jobNumbers):
+        for j in range(jobNumbers):
             for job in self.workStation1:
                 if job.jobNumber == j:
                     print(job.startTime, " ", end='')
